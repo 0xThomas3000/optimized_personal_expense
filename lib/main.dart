@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:optimized_personal_expense/providers/transactions.dart';
+import 'package:provider/provider.dart';
 import './widgets/new_transaction.dart';
-import './models/transaction.dart';
 import './widgets/transaction_list.dart';
 import './widgets/chart.dart';
 
@@ -20,122 +21,63 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Personal Expenses',
-      theme: ThemeData(
-        fontFamily: 'Quicksand',
-        colorScheme: theme.colorScheme.copyWith(
-          primary: Colors.purple,
-          secondary: Colors.amber,
-          error: Colors.red,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(
+          value: Transactions(),
         ),
-        appBarTheme: theme.appBarTheme.copyWith(
-          titleTextStyle: const TextStyle(
-            fontFamily: 'OpenSans',
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+      ],
+      child: MaterialApp(
+        title: 'Personal Expenses',
+        theme: ThemeData(
+          fontFamily: 'Quicksand',
+          colorScheme: theme.colorScheme.copyWith(
+            primary: Colors.purple,
+            secondary: Colors.amber,
+            error: Colors.red,
+          ),
+          appBarTheme: theme.appBarTheme.copyWith(
+            titleTextStyle: const TextStyle(
+              fontFamily: 'OpenSans',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          textTheme: theme.textTheme.copyWith(
+            titleLarge: const TextStyle(
+              fontFamily: 'OpenSans',
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
         ),
-        textTheme: theme.textTheme.copyWith(
-          titleLarge: const TextStyle(
-            fontFamily: 'OpenSans',
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        home: MyHomePage(),
       ),
-      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key}) : super(key: key) {
-    print('Constructor MyHomePage Widget');
-  }
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() {
-    print('createState() MyHomePage Widget');
     return _MyHomePageState();
   }
 }
 
-class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
-  final List<Transaction> _userTransactions = [];
-
-  _MyHomePageState() {
-    print('Constructor MyHomePage State');
-  }
-
-  List<Transaction> get _recentTransactions {
-    return _userTransactions.where((tx) {
-      return tx.date.isAfter(
-        DateTime.now().subtract(
-          const Duration(days: 7),
-        ),
-      );
-    }).toList();
-  }
-
+class _MyHomePageState extends State<MyHomePage> {
   bool _showChart = false;
 
-  @override
-  void initState() {
-    print('initState() MyHomePage State');
-    WidgetsBinding.instance.addObserver(this);
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(covariant MyHomePage oldWidget) {
-    print('didUpdateWidget() MyHomePage Widget');
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    print(state);
-    super.didChangeAppLifecycleState(state);
-  }
-
-  @override
-  void dispose() {
-    print('dispose() MyHomePage Widget');
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _addNewTransaction(
-      String txTitle, double txAmount, DateTime chosenDate) {
-    final newTx = Transaction(
-        title: txTitle,
-        amount: txAmount,
-        date: chosenDate,
-        id: DateTime.now().toString());
-
-    setState(() {
-      print('setState() MyHomePage State');
-      _userTransactions.add(newTx);
-    });
-  }
-
-  void _deleteTransaction(String id) {
-    setState(() {
-      _userTransactions.removeWhere((tx) {
-        return tx.id == id;
-      });
-    });
-  }
-
   void _startAddNewTransaction(BuildContext ctx) {
+    final myModel = Provider.of<Transactions>(ctx, listen: false);
     showModalBottomSheet(
       context: ctx,
       builder: (_) {
         return GestureDetector(
           onTap: () {},
           behavior: HitTestBehavior.opaque,
-          child: NewTransaction(_addNewTransaction),
+          child: NewTransaction(myModel),
         );
       },
     );
@@ -169,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                       appBar.preferredSize.height -
                       mediaQuery.padding.top) *
                   0.7,
-              child: Chart(_recentTransactions),
+              child: Chart(),
             )
           : txListWidget,
     ];
@@ -183,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 appBar.preferredSize.height -
                 mediaQuery.padding.top) *
             0.3,
-        child: Chart(_recentTransactions),
+        child: Chart(),
       ),
       txListWidget,
     ];
@@ -191,7 +133,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    print('build() MyHomePage Widget');
     final mediaQuery = MediaQuery.of(context);
     final isLanscape = mediaQuery.orientation == Orientation.landscape;
     final appBar = Platform.isIOS
@@ -210,7 +151,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               ],
             ),
           )
-        : (AppBar(
+        : AppBar(
             title: const Text('Personal Expenses'),
             actions: <Widget>[
               IconButton(
@@ -218,14 +159,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 onPressed: () => _startAddNewTransaction(context),
               ),
             ],
-          ));
+          );
 
     final txListWidget = Container(
       height: (mediaQuery.size.height -
               (appBar as PreferredSizeWidget).preferredSize.height -
               mediaQuery.padding.top) *
           0.7,
-      child: TransactionList(_userTransactions, _deleteTransaction),
+      child: TransactionList(),
     );
 
     final pageBody = SafeArea(

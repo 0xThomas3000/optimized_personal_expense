@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import '../models/transaction.dart';
+import 'package:provider/provider.dart';
+import '../providers/transaction.dart';
+import '../providers/transactions.dart';
 import 'transaction_item.dart';
 
 class TransactionList extends StatefulWidget {
-  final List<Transaction> transactions;
-  final Function deleteTx; // a pointer to "_deleteTransaction" function
-
-  TransactionList(this.transactions, this.deleteTx) {
-    print('Constructor TransactionList StatelessWidget');
-  }
+  // final List<Transaction> transactions;
+  // final Function deleteTx; // a pointer to "_deleteTransaction" function
 
   @override
   State<TransactionList> createState() => _TransactionListState();
@@ -16,15 +14,9 @@ class TransactionList extends StatefulWidget {
 
 class _TransactionListState extends State<TransactionList> {
   @override
-  void didUpdateWidget(covariant TransactionList oldWidget) {
-    print('didUpdateWidget() TransactionList Widget');
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    print('build() TransactionList StatelessWidget');
-    return widget.transactions.isEmpty
+    final transactions = Provider.of<Transactions>(context, listen: true);
+    return transactions.userTransactions.isEmpty
         ? LayoutBuilder(builder: (ctx, constraints) {
             return Column(
               children: <Widget>[
@@ -49,30 +41,20 @@ class _TransactionListState extends State<TransactionList> {
             childrenDelegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 return TransactionItem(
-                  transaction: widget.transactions[index],
-                  key: ValueKey<Transaction>(widget.transactions[index]),
-                  deleteTx: widget.deleteTx,
+                  transaction: transactions.userTransactions[index],
+                  key: ValueKey<Transaction>(
+                      transactions.userTransactions[index]),
+                  deleteTx: transactions.deleteTransaction,
                 );
               },
-              childCount: widget.transactions.length,
+              childCount: transactions.userTransactions.length,
               findChildIndexCallback: (Key key) {
                 final ValueKey<Transaction> valueKey =
                     key as ValueKey<Transaction>;
                 final Transaction data = valueKey.value;
-                return widget.transactions.indexOf(data);
+                return transactions.userTransactions.indexOf(data);
               },
             ),
           );
-    // : ListView.builder(
-    //     itemBuilder: (ctx, index) {
-    //       return TransactionItem(
-    //         key: ValueKey(transactions[index].id),
-    //         transaction: transactions[index],
-    //         deleteTx: deleteTx,
-    //       );
-    //     },
-    //     itemCount: transactions
-    //         .length, // if we have 2 transactions, we're gonna build 2 items
-    // );
   }
 }

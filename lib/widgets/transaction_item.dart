@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/transaction.dart';
+import '../providers/transaction.dart';
 
 class TransactionItem extends StatefulWidget {
   final Transaction transaction;
@@ -14,12 +14,10 @@ class TransactionItem extends StatefulWidget {
     required this.deleteTx,
   }) : super(key: key) {
     // Instantiate the parent widget class
-    print('Constructor TransactionItem Widget');
   }
 
   @override
   State<TransactionItem> createState() {
-    print('createState() TransactionItem State');
     return _TransactionItemState();
   }
 }
@@ -42,14 +40,7 @@ class _TransactionItemState extends State<TransactionItem> {
   }
 
   @override
-  void didUpdateWidget(covariant TransactionItem oldWidget) {
-    print('didUpdateWidget() TransactionItem Widget');
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    print('build() TransactionItem Widget');
     return Card(
       elevation: 5,
       margin: const EdgeInsets.symmetric(

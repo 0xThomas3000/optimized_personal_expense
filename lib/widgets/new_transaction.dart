@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/transactions.dart';
 import '../widgets/adaptive_button.dart';
 
 class NewTransaction extends StatefulWidget {
-  final Function addTx;
+  final Transactions transactions;
 
-  NewTransaction(this.addTx) {
-    print('Constructor NewTransaction Widget');
-  }
+  const NewTransaction(this.transactions, {super.key});
 
   @override
   State<NewTransaction> createState() {
-    print('createState() NewTransaction Widget');
     return _NewTransactionState();
   }
 }
@@ -20,50 +19,6 @@ class _NewTransactionState extends State<NewTransaction> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _selectedDate;
-
-  _NewTransactionState() {
-    print('Constructor NewTransaction State');
-  }
-
-  @override
-  void initState() {
-    print('initState() NewTransaction State');
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(covariant NewTransaction oldWidget) {
-    print('didUpdateWidget() NewTransaction Widget');
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
-  void dispose() {
-    print('dispose() NewTransaction Widget');
-    super.dispose();
-  }
-
-  void _submitData() {
-    final enteredTitle = _titleController.text;
-    final enteredAmount = double.parse(_amountController.text);
-
-    if (_amountController.text.isEmpty) {
-      return;
-    }
-
-    if (enteredTitle.isEmpty || enteredAmount <= 0 || _selectedDate == null) {
-      return;
-    }
-
-    widget.addTx(
-      // widget helps us to access addTx property from another class
-      enteredTitle,
-      enteredAmount,
-      _selectedDate,
-    );
-
-    Navigator.of(context).pop();
-  }
 
   void _presentDatePicker() {
     showDatePicker(
@@ -83,9 +38,15 @@ class _NewTransactionState extends State<NewTransaction> {
     // print('...');
   }
 
+  void _submitData(Transactions transactions) {
+    transactions.submitData(_titleController.text,
+        double.parse(_amountController.text), _selectedDate);
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('build() NewTransaction Widget');
+    final transactions = Provider.of<Transactions>(context, listen: false);
     return SingleChildScrollView(
       child: Card(
         elevation: 5,
@@ -105,7 +66,7 @@ class _NewTransactionState extends State<NewTransaction> {
               TextField(
                 decoration: const InputDecoration(labelText: 'Title'),
                 controller: _titleController,
-                onSubmitted: (_) => _submitData(),
+                onSubmitted: (_) => _submitData(transactions),
                 // onChanged: (val) {
                 //   titleInput = val;
                 // },
@@ -115,8 +76,8 @@ class _NewTransactionState extends State<NewTransaction> {
                 controller: _amountController,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                onSubmitted: (_) =>
-                    _submitData(), // _ means that it's not an important argument and we dont' need use it.
+                onSubmitted: (_) => _submitData(
+                    transactions), // _ means that it's not an important argument and we dont' need use it.
                 // onChanged: (val) => amountInput = val,
               ),
               SizedBox(
@@ -139,7 +100,7 @@ class _NewTransactionState extends State<NewTransaction> {
                   backgroundColor: MaterialStateProperty.all(
                       Theme.of(context).colorScheme.primary),
                 ),
-                onPressed: _submitData,
+                onPressed: () => _submitData(transactions),
                 child: const Text('Add Transaction'),
               ),
             ],
